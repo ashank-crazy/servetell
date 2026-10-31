@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ServeTell</title>
+  <meta name="description" content="Which tennis serve patterns are signal and which are noise: 2.5 million charted pro serves, a game-theory test, and a matchup scouting report that only shows edges that hold up.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23c8e000'/%3E%3Cpath d='M6 7c6 4 6 14 0 18M26 7c-6 4-6 14 0 18' stroke='%23fff' stroke-width='2.4' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+<header class="hero">
+  <svg class="ball" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#c8e000"/><path d="M14 18c16 14 16 50 0 64M86 18c-16 14-16 50 0 64" stroke="#f5f4ee" stroke-width="3" fill="none" stroke-linecap="round"/></svg>
+  <div class="wrap">
+    <p class="kicker">AQX Sports Analytics Data Bowl 4.0 · Tennis</p>
+    <h1>ServeTell</h1>
+    <p class="lede">Broadcasts love to show where a player "likes" to serve. We tested <b data-k="serves"></b> charted pro serves to find out which of those patterns are real, then built a scouting report that only shows the edges that hold up.</p>
+    <div class="tiles">
+      <div class="tile"><span class="big" data-k="tile_reliab"></span><span>of a player's T-vs-wide split carries into the next season (ATP). The rest is noise.</span></div>
+      <div class="tile"><span class="big" data-k="tile_switch"></span><span>of WTA servers switch targets more often than a random mixer would (<b data-k="atp_sig_switch"></b> of ATP).</span></div>
+      <div class="tile"><span class="big" data-k="tile_read"></span><span>more correct reads per 100 serves for ATP returners who track the last serve (<b data-k="wta_read"></b> WTA), tested on 2025–26 matches.</span></div>
+      <div class="tile"><span class="big" data-k="tile_second"></span><span>of pros would lose points by hitting a second "first serve".</span></div>
+    </div>
+    <nav class="jump"><a href="#scout">Scout a matchup</a><a href="#findings">What the data says</a><a href="#method">How it works</a></nav>
+  </div>
+</header>
+
+<main>
+<section id="scout" class="wrap">
+  <h2>Scout a matchup</h2>
+  <p class="sub">Pick a server and a returner. Every number is shrunk toward the tour norm by how much data backs it, so a hot streak in a few matches can't fool you.</p>
+  <form class="controls" id="controls" autocomplete="off">
+    <div class="seg" role="radiogroup" aria-label="Tour">
+      <label><input type="radio" name="tour" value="atp" checked><span>ATP</span></label>
+      <label><input type="radio" name="tour" value="wta"><span>WTA</span></label>
+    </div>
+    <label class="field">Server<input id="server" list="players" required></label>
+    <label class="field">Returner<input id="returner" list="players" required></label>
+    <label class="field">Surface<select id="surface"><option>Hard</option><option>Clay</option><option>Grass</option></select></label>
+    <datalist id="players"></datalist>
+  </form>
+  <p class="err" id="err" hidden></p>
+
+  <div id="report" class="report">
+    <div class="card forecast">
+      <h3>Serve forecast</h3>
+      <div class="kpis" id="kpis"></div>
+      <p class="note" id="forecast-note"></p>
+    </div>
+
+    <div class="card">
+      <h3>Where to aim the first serve</h3>
+      <p class="note">Seen from <b data-k="srv_name"></b>'s side of the net. Big number: chance <b data-k="srv_name"></b> wins the point aiming there against this returner (model, ±90% range). "Raw vs all" is their plain win rate against every opponent, the kind of split a broadcast shows. Bar: how often they go there now.</p>
+      <div class="court" id="court"></div>
+      <div class="verdicts" id="verdicts"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>The returner's read</h3>
+        <p class="note">Where <b data-k="srv_name"></b>'s next first serve to the same court tends to go, given the last one. Shaded cells move at least 4 points away from their usual mix.</p>
+        <div id="reads"></div>
+        <p class="note" id="switch-note"></p>
+      </div>
+      <div class="card">
+        <h3>Under pressure</h3>
+        <p class="note">First-serve mix on break points against <b data-k="srv_name"></b>, vs every other point.</p>
+        <div id="pressure"></div>
+        <h3 class="mt">Second serve check</h3>
+        <div id="second"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="findings" class="wrap">
+  <h2>What 2.5 million serves say</h2>
+
+  <article class="finding">
+    <div class="text">
+      <p class="num">01</p>
+      <h3>A player's "best spot" is mostly noise</h3>
+      <p>We took every player's first-serve win rate going T vs. going wide in matches through 2024, then checked it against what happened in 2025–26. If those splits were real, the dots would sit on the dashed diagonal. The best-fit line is nearly flat: about <b data-k="atp_reliab"></b> of an ATP split carries forward, and <b data-k="wta_reliab"></b> for WTA. Simply assuming "no difference" forecast 2025–26 better than the raw splits did.</p>
+      <p>That is what game theory predicts. If one spot paid better, returners would cheat toward it until it stopped paying. Walker &amp; Wooders found pros sit at this balance in 10 Wimbledon finals. Testing T vs. wide inside each of <b data-k="minimax_tests"></b> player-court splits, <b data-k="minimax_p05"></b> come out "significant", about the 5% pure chance would flag. After correcting for testing that many players at once, not one split survives.</p>
+      <p class="take"><b>For coaches:</b> don't rebuild a serve plan around a split from a handful of matches. ServeTell's numbers are shrunk by how much evidence backs them.</p>
+    </div>
+    <figure><div class="chart" id="chart-reliab"></div><figcaption>Each dot is one player on one court (deuce or ad) with 30+ T and 30+ wide first serves in 2025–26. Lines: what you'd expect if splits were all signal (dashed) vs. what happened (solid).</figcaption></figure>
+  </article>
+
+  <article class="finding">
+    <div class="text">
+      <p class="num">02</p>
+      <h3>One pattern is real: body first serves lose</h3>
+      <p>Across both tours, first serves aimed at the body win about <b data-k="body_gap"></b> fewer points per 100 than serves to the T or out wide, on both courts. It is the one target gap that shows up the same way on both tours and both courts, with hundreds of thousands of serves behind it.</p>
+      <p class="take"><b>For servers:</b> keep the body serve as a surprise, not a staple. <b>Caveat:</b> charters log where the ball lands, so a mis-hit wide or T serve can be recorded as "body". Part of this gap is mis-hits.</p>
+    </div>
+    <figure><div class="chart" id="chart-base"></div><figcaption>Share of points won by the server when the first serve is aimed at each spot (faults count, so a missed first serve leads to a second-serve point).</figcaption></figure>
+  </article>
+
+  <article class="finding">
+    <div class="text">
+      <p class="num">03</p>
+      <h3>The real tell is timing: pros switch too much</h3>
+      <p>A truly random server would hit the same spot twice in a row at a predictable rate. Real pros repeat less. <b data-k="wta_sig_switch"></b> of WTA and <b data-k="atp_sig_switch"></b> of ATP servers switch significantly more than chance (permutation test inside each match). Across the tours that is <b data-k="wta_rep"></b> repeats vs. <b data-k="wta_rep_exp"></b> expected (WTA) and <b data-k="atp_rep"></b> vs. <b data-k="atp_rep_exp"></b> (ATP).</p>
+      <p>The tell holds up out of sample. Learning each server's habits from matches through 2024 and guessing their 2025–26 serves, using the last serve lifts the hit rate from <b data-k="atp_acc_usual"></b> to <b data-k="atp_acc_tell"></b> (ATP) and from <b data-k="wta_acc_usual"></b> to <b data-k="wta_acc_tell"></b> (WTA).</p>
+      <p>Not everyone falls for it. The ATP's strongest repeaters are <b data-k="repeaters"></b>, and across <b data-k="atp_rep_n"></b> ATP servers, repeating more goes with a stronger first serve (r = <b data-k="atp_rep_r"></b>). The WTA shows no such link (r = <b data-k="wta_rep_r"></b>), so treat it as a pattern worth testing, not proof.</p>
+      <p class="take"><b>For returners:</b> after a serve to one spot, shade toward the other. <b>For servers:</b> going back to the same spot is less predictable than it feels.</p>
+    </div>
+    <figure><div class="chart" id="chart-switch"></div><figcaption>Switching score for every server with 300+ back-to-back first serves to the same court. A server who picks at random lands under the dashed bell curve. Real servers sit to its left: they switch more than chance. Below −2 is significant.</figcaption></figure>
+  </article>
+
+  <article class="finding">
+    <div class="text">
+      <p class="num">04</p>
+      <h3>Break points don't change the mix</h3>
+      <p>We compared each server's mix on break points to their own mix on every other point. On break points they go to their favorite spot <b data-k="atp_fav_obs"></b> of the time vs. <b data-k="atp_fav_exp"></b> expected (ATP), and <b data-k="wta_fav_obs"></b> vs. <b data-k="wta_fav_exp"></b> (WTA). No tour-wide pressure tell. What does change is the result: servers win about <b data-k="bp_drop"></b> fewer break points than other points, whichever way they aim.</p>
+      <p class="take"><b>For returners:</b> don't guess "they'll go to their favorite" on big points. Check the individual player in the scout above, but samples there are small.</p>
+    </div>
+    <figure><div class="chart" id="chart-pressure"></div><figcaption>First-serve points won by the server, break points vs. all other points (tiebreaks excluded).</figcaption></figure>
+  </article>
+
+  <article class="finding">
+    <div class="text">
+      <p class="num">05</p>
+      <h3>Keep the second serve a second serve</h3>
+      <p>Should a player just hit two first serves? That pays when (first serves in) × (points won when in) beats their second-serve win rate. For the median player it costs <b data-k="atp_second_med"></b> (ATP) and <b data-k="wta_second_med"></b> (WTA). Only <b data-k="second_gain"></b> of <b data-k="second_players"></b> regular servers would gain, and just <b data-k="second_sig"></b> clears statistical significance.</p>
+      <p class="take"><b>For coaches:</b> the safe second serve is right for almost everyone. If you coach a big server, check them in the scout before trying it.</p>
+    </div>
+    <figure><div class="chart" id="chart-second"></div><figcaption>Each dot is a player with 400+ charted second serves. Above the line = would win more by going big on the second serve.</figcaption></figure>
+  </article>
+</section>
+
+<section id="method" class="wrap">
+  <h2>How it works</h2>
+  <div class="grid2">
+    <div class="card prose">
+      <h3>Data</h3>
+      <p>The <a href="https://github.com/JeffSackmann/tennis_MatchChartingProject">Match Charting Project</a>: volunteer, shot-by-shot charts of <b data-k="matches"></b> pro matches (<b data-k="atp_matches"></b> ATP, <b data-k="wta_matches"></b> WTA, <b data-k="range"></b>). We parsed every point into serve attempts. For each one we know first or second serve, the target (wide, body, T), the court (deuce or ad, worked out from the score), break-point status, surface, both players, and who won the point.</p>
+      <h3>Model</h3>
+      <p>A penalized logistic regression predicts the chance the server wins the point. It combines a tour baseline (serve × court × target × surface) with each server's and each returner's overall strength, their strength by serve, and their target-specific quirks. The penalty pulls every player effect toward zero unless the data insists, the same as a random-effects model. Penalties were tuned on 2024 matches. Target-specific quirks needed the heaviest penalty (λ = <b data-k="lam_v"></b>), which is finding 01 again.</p>
+      <h3>Validation</h3>
+      <p>We trained on matches through 2024 and scored on <b data-k="atp_test_matches"></b> ATP and <b data-k="wta_test_matches"></b> WTA matches from 2025–26 that the model never saw.</p>
+      <table class="tbl" id="val-table"></table>
+      <p class="small">Point outcomes are close to coin flips, so log-loss gains look small. They are steady across tours and splits. Hold % comes from the standard game formula applied to the forecast serve-point win rate.</p>
+    </div>
+    <div class="card">
+      <h3>Calibration on 2025–26 matches</h3>
+      <div class="chart" id="chart-cal"></div>
+      <p class="small">Serves grouped into tenths by forecast. Points on the diagonal mean "a 60% forecast wins 60% of the time".</p>
+      <h3 class="mt">Limitations</h3>
+      <ul class="small">
+        <li>Charted matches lean toward big events and well-known players. Lower-ranked players have fewer matches, so their numbers are pulled harder toward the tour norm.</li>
+        <li>Targets are recorded where the ball lands, not where it was aimed.</li>
+        <li>The switching test shuffles serves within each match. A server who changes plan mid-match (say, attacking one weakness for a set) shows up as a "repeater", so repeat counts mix habit with in-match adjustment.</li>
+        <li>The direction tests are observational. Players pick targets based on things we can't see (the returner's position, wind, fatigue).</li>
+        <li>Our "two first serves" check assumes a first serve keeps its usual accuracy when hit as a second serve. Under pressure it likely won't, so the real gain is even smaller.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap foot">
+  <p>Data: <a href="https://github.com/JeffSackmann/tennis_MatchChartingProject">Tennis Abstract Match Charting Project</a> by Jeff Sackmann and contributors, <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. Derived data on this site is shared under the same license, for non-commercial use. Code: MIT. Not affiliated with the ATP, WTA or any player.</p>
+</footer>
+<div class="tip" id="tip" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
